@@ -97,7 +97,7 @@ jobs:
           print("📋 Summary      :", summary)
           print("🎯 Confidence   :", confidence)
 
-          if status != "APPROVE":
+          if status != "UNSATISFACTORY":
               print("❌ AI BLOCKED this change")
               sys.exit(1)
 
