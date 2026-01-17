@@ -76,26 +76,22 @@ jobs:
           echo "============================================"
           
      # SLACK Message 
-      - name: Send Full AI Report to Slack
+      - name: Send AI Response to Slack
         run: |
-          jq -n \
-            --arg status "$(jq -r .status ai_response.json)" \
-            --arg summary "$(jq -r .summary ai_response.json)" \
-            --arg issues "$(jq -r '.issues[]' ai_response.json | sed 's/^/- /')" \
-            --arg fixes "$(jq -r '.recommended_fixes[]' ai_response.json | sed 's/^/- /')" \
-            '{
-              text:
-                "*AI Terraform Review*\n\n" +
-                "*Status:* \($status)\n\n" +
-                "*Summary:*\n\($summary)\n\n" +
-                "*Issues:*\n\($issues)\n\n" +
-                "*Recommended Fixes:*\n\($fixes)"
-            }' \
+          MESSAGE=$(jq -r '
+            "*AI Terraform Review*\n" +
+            "Status: " + .status + "\n" +
+            "Confidence: " + (.confidence|tostring) + "%\n\n" +
+            "*Summary:*\n" + .summary
+          ' ai_response.json)
+      
+          jq -n --arg text "$MESSAGE" \
+            '{text: $text}' \
           | curl -s -X POST \
               -H "Content-Type: application/json" \
               --data @- \
               "${{ secrets.SLACK_WEBHOOK_URL }}"
-      
+    
 
       # Send Email 
       -  name: Send AI Response via Email
