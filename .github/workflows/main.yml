@@ -60,11 +60,12 @@ jobs:
       # -------------------------------
       - name: Show AI Response
         run: |
-          echo "================ AI RESPONSE ================"
-          echo "HTTP Status Code: ${{ steps.ai.outputs.status_code }}"
-          echo ""
-          echo "${{ steps.ai.outputs.response }}"
-          echo "============================================"
+            echo "================ AI RESPONSE ================"
+            echo "HTTP Status Code: ${{ steps.ai.outputs.status_code }}"
+            echo ""
+            echo '${{ steps.ai.outputs.response }}'
+            echo "============================================"
+
 
       # -------------------------------
       # 6️⃣ Enforce AI Decision (SAFE)
