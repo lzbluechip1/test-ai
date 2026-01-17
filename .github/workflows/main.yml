@@ -117,7 +117,7 @@ jobs:
             password: ${{ secrets.EMAIL_PASSWORD }}
             subject: "AI Terraform Review Result"
             to: "lzbluechip16@gmail.com"
-            from: "GitHub Actions <${{ secrets.EMAIL_USERNAME }}>"
+            from: "MY-PROJECT-CI-CD <${{ secrets.EMAIL_USERNAME }}>"
             body: |
                 HTTP Status Code: ${{ steps.ai.outputs.status_code }}
 
