@@ -9,23 +9,38 @@ jobs:
   ai-review:
     runs-on: ubuntu-latest
 
-   
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-    
+      # Install jq safely
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Run AI Terraform Review
         id: ai
+        env:
+          AI_REVIEW_URL: https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review
         run: |
-          RESPONSE=$(curl -s -X POST https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review)
+          echo "Calling AI Review service..."
+
+          RESPONSE=$(curl -sS --fail \
+            --max-time 60 \
+            -X POST "$AI_REVIEW_URL")
+
+          echo "AI Response:"
           echo "$RESPONSE"
-          echo "decision=$RESPONSE" >> $GITHUB_OUTPUT
+
+          # Validate JSON
+          echo "$RESPONSE" | jq . > /dev/null
+
+          echo "decision=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Enforce AI Decision
         run: |
           STATUS=$(echo '${{ steps.ai.outputs.decision }}' | jq -r '.status')
+
+          echo "AI Decision: $STATUS"
 
           if [ "$STATUS" != "APPROVE" ]; then
             echo "❌ AI blocked this change"
