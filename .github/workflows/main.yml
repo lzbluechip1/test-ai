@@ -74,7 +74,17 @@ jobs:
           echo '${{ steps.ai.outputs.response }}' | jq .
 
           echo "============================================"
-          
+    # Save Message in a JSON   
+      - name: Save AI Response
+        run: |
+          echo '${{ steps.ai.outputs.response }}' > ai_response.json
+          echo "Saved AI response:"
+          cat ai_response.json
+
+      - name: Validate AI JSON
+        run: |
+          jq . ai_response.json
+
      # SLACK Message 
       - name: Send AI Response to Slack
         run: |
