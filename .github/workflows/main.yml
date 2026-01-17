@@ -1,0 +1,35 @@
+name: AI Terraform Review
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+
+   
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+    
+
+      - name: Run AI Terraform Review
+        id: ai
+        run: |
+          RESPONSE=$(curl -s -X POST https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review)
+          echo "$RESPONSE"
+          echo "decision=$RESPONSE" >> $GITHUB_OUTPUT
+
+      - name: Enforce AI Decision
+        run: |
+          STATUS=$(echo '${{ steps.ai.outputs.decision }}' | jq -r '.status')
+
+          if [ "$STATUS" != "APPROVE" ]; then
+            echo "❌ AI blocked this change"
+            exit 1
+          fi
+
+          echo "✅ AI approved Terraform changes"
