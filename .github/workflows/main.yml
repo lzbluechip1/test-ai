@@ -32,6 +32,11 @@ jobs:
         run: |
           ZIP=$(python scripts/zip_terraform.py)
           echo "terraform_zip=$ZIP" >> $GITHUB_OUTPUT
+      # install jq
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
 
       # -------------------------------
       # 4️⃣ Call AI Orchestrator
@@ -56,7 +61,7 @@ jobs:
           echo "status_code=$CODE" >> $GITHUB_OUTPUT
 
       # -------------------------------
-      # 5️⃣ Print AI Response (Always)
+      #  Print AI Response (Always)
       # -------------------------------
       - name: Show AI Response
         run: |
@@ -65,12 +70,32 @@ jobs:
             echo ""
             echo '${{ steps.ai.outputs.response }}'
             echo "============================================"
+            
+      - name: Show AI Response (Pretty JSON)
+        run: |
+          echo "================ AI RESPONSE ================"
+          echo "HTTP Status Code: ${{ steps.ai.outputs.status_code }}"
+          echo ""
 
+          echo '${{ steps.ai.outputs.response }}' | jq .
+
+          echo "============================================"
 
       # -------------------------------
-      # 6️⃣ Enforce AI Decision (SAFE)
+      #  Enforce AI Decision (SAFE)
       # -------------------------------
       - name: Enforce AI Decision
+        run: |
+          STATUS=$(echo '${{ steps.ai.outputs.response }}' | jq -r .status)
+
+          if [ "$STATUS" != "STABLE" ]; then
+            echo "❌ AI blocked Terraform (status=$STATUS)"
+            exit 1
+          fi
+
+          echo "✅ Terraform approved by AI"
+          
+      - name: Enforce AI Decision111
         run: |
           python - <<'EOF'
           import json, sys
