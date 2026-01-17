@@ -27,14 +27,13 @@ jobs:
           RESPONSE=$(curl -s -X POST \
             https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review \
             -H "Content-Type: application/json" \
-            -d '{"terraform_files_base64":"'"$ZIP"'"}')
+            -d "{\"terraform_files_base64\":\"$ZIP\"}")
 
-          echo "$RESPONSE"
-          echo "decision=$RESPONSE" >> $GITHUB_OUTPUT
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
 
       - name: Enforce Decision
         run: |
-          STATUS=$(echo '${{ steps.ai.outputs.decision }}' | jq -r '.status')
+          STATUS="${{ fromJson(steps.ai.outputs.response).status }}"
 
           if [ "$STATUS" != "APPROVE" ]; then
             echo "❌ AI blocked Terraform"
