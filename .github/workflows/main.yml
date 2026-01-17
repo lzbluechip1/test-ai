@@ -74,6 +74,15 @@ jobs:
           echo '${{ steps.ai.outputs.response }}' | jq .
 
           echo "============================================"
+          
+     # SLACK Message 
+      - name: Send AI Response to Slack
+        run: |
+           curl -X POST -H 'Content-type: application/json' \
+            --data "{
+            \"text\": \"*AI Terraform Review*\nStatus: ${{ steps.ai.outputs.status_code }}\nResponse: ${{ steps.ai.outputs.response }}\"
+             }" ${{ secrets.SLACK_WEBHOOK_URL }}
+
 
       # -------------------------------
       #  Enforce AI Decision (SAFE)
