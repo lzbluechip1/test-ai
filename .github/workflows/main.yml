@@ -11,13 +11,13 @@ jobs:
 
     steps:
       # -------------------------------
-      # 1️⃣ Checkout repository
+      #  Checkout repository
       # -------------------------------
       - name: Checkout repo
         uses: actions/checkout@v4
 
       # -------------------------------
-      # 2️⃣ Setup Python
+      #  Setup Python
       # -------------------------------
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -25,7 +25,7 @@ jobs:
           python-version: "3.11"
 
       # -------------------------------
-      # 3️⃣ Zip Terraform directory
+      #  Zip Terraform directory
       # -------------------------------
       - name: Zip Terraform
         id: zip
@@ -39,7 +39,7 @@ jobs:
           sudo apt-get install -y jq
 
       # -------------------------------
-      # 4️⃣ Call AI Orchestrator
+      #  Call AI Orchestrator
       # -------------------------------
       - name: Send Terraform to AI Agent
         id: ai
@@ -83,6 +83,22 @@ jobs:
             \"text\": \"*AI Terraform Review*\nStatus: ${{ steps.ai.outputs.status_code }}\nResponse: ${{ steps.ai.outputs.response }}\"
              }" ${{ secrets.SLACK_WEBHOOK_URL }}
 
+      # Send Email 
+      -  name: Send AI Response via Email
+         uses: dawidd6/action-send-mail@v3
+         with:
+            server_address: smtp.gmail.com
+            server_port: 587
+            username: ${{ secrets.EMAIL_USERNAME }}
+            password: ${{ secrets.EMAIL_PASSWORD }}
+            subject: "AI Terraform Review Result"
+            to: "your-email@example.com"
+            from: "GitHub Actions <${{ secrets.EMAIL_USERNAME }}>"
+            body: |
+                HTTP Status Code: ${{ steps.ai.outputs.status_code }}
+
+                AI Response:
+                ${{ steps.ai.outputs.response }}
 
       # -------------------------------
       #  Enforce AI Decision (SAFE)
