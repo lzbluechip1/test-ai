@@ -6,46 +6,99 @@ on:
     branches: [ main ]
 
 jobs:
-  review:
+  ai-review:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # -------------------------------
+      # 1️⃣ Checkout repository
+      # -------------------------------
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      # -------------------------------
+      # 2️⃣ Setup Python
+      # -------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # -------------------------------
+      # 3️⃣ Zip Terraform directory
+      # -------------------------------
       - name: Zip Terraform
+        id: zip
         run: |
           ZIP=$(python scripts/zip_terraform.py)
-          echo "ZIP=$ZIP" >> $GITHUB_ENV
+          echo "terraform_zip=$ZIP" >> $GITHUB_OUTPUT
 
-      - name: Send to AI Agent
+      # -------------------------------
+      # 4️⃣ Call AI Orchestrator
+      # -------------------------------
+      - name: Send Terraform to AI Agent
         id: ai
         run: |
-          RESPONSE=$(curl -s -X POST \
+          echo "📡 Sending Terraform to AI..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review \
             -H "Content-Type: application/json" \
-            -d "{\"terraform_files_base64\":\"$ZIP\"}")
+            -d "{\"terraform_files_base64\":\"${{ steps.zip.outputs.terraform_zip }}\"}")
 
-          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          BODY=$(echo "$RESPONSE" | head -n 1)
+          CODE=$(echo "$RESPONSE" | tail -n 1)
 
-      - name: Show AI Decision
-        env:
-           STATUS: ${{ fromJson(steps.ai.outputs.response).status }}
-           SUMMARY: ${{ fromJson(steps.ai.outputs.response).summary }}
+          echo "response<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "status_code=$CODE" >> $GITHUB_OUTPUT
+
+      # -------------------------------
+      # 5️⃣ Print AI Response (Always)
+      # -------------------------------
+      - name: Show AI Response
         run: |
-          echo "🧠 AI Decision: $STATUS"
-          echo "📋 Summary: $SUMMARY"
+          echo "================ AI RESPONSE ================"
+          echo "HTTP Status Code: ${{ steps.ai.outputs.status_code }}"
+          echo ""
+          echo "${{ steps.ai.outputs.response }}"
+          echo "============================================"
 
-      - name: Enforce Decision
-        env:
-           STATUS: ${{ fromJson(steps.ai.outputs.response).status }}
+      # -------------------------------
+      # 6️⃣ Enforce AI Decision (SAFE)
+      # -------------------------------
+      - name: Enforce AI Decision
         run: |
-          if [ "$STATUS" != "APPROVE" ]; then
-             echo "❌ AI blocked Terraform"
-             exit 1
-          fi
-           echo "✅ Terraform approved"
+          python - <<'EOF'
+          import json, sys
 
+          raw = """${{ steps.ai.outputs.response }}"""
+          code = int("${{ steps.ai.outputs.status_code }}")
+
+          if code != 200:
+              print("❌ AI service failed (HTTP", code, ")")
+              sys.exit(1)
+
+          try:
+              data = json.loads(raw)
+          except Exception:
+              print("❌ AI response is not valid JSON")
+              print(raw)
+              sys.exit(1)
+
+          status = data.get("status")
+          summary = data.get("summary")
+          confidence = data.get("confidence")
+
+          print("🧠 AI Status    :", status)
+          print("📋 Summary      :", summary)
+          print("🎯 Confidence   :", confidence)
+
+          if status != "APPROVE":
+              print("❌ AI BLOCKED this change")
+              sys.exit(1)
+
+          print("✅ AI APPROVED Terraform")
+          EOF
