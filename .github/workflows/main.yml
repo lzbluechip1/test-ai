@@ -132,14 +132,14 @@ jobs:
           STATUS=$(echo '${{ steps.ai.outputs.response }}' | jq -r .status)
 
           if [ "$STATUS" != "STABLE" ]; then
-            echo "❌ AI blocked Terraform (status=$STATUS)"
+            echo " AI blocked Terraform (status=$STATUS)"
             exit 1
           fi
 
-          echo "✅ Terraform approved by AI"
+          echo " Terraform approved by AI"
           
       
               sys.exit(1)
 
-          print("✅ AI APPROVED Terraform")
+          print(" AI APPROVED Terraform")
           EOF
