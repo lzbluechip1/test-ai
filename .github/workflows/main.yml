@@ -25,7 +25,7 @@ jobs:
         id: ai
         run: |
           RESPONSE=$(curl -s -X POST \
-            https://AI-AGENT-URL/review \
+            https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review \
             -H "Content-Type: application/json" \
             -d '{"terraform_files_base64":"'"$ZIP"'"}')
 
