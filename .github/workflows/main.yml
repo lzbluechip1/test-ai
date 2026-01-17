@@ -31,13 +31,21 @@ jobs:
 
           echo "response=$RESPONSE" >> $GITHUB_OUTPUT
 
-      - name: Enforce Decision
+      - name: Show AI Decision
+        env:
+           STATUS: ${{ fromJson(steps.ai.outputs.response).status }}
+           SUMMARY: ${{ fromJson(steps.ai.outputs.response).summary }}
         run: |
-          STATUS="${{ fromJson(steps.ai.outputs.response).status }}"
+          echo "🧠 AI Decision: $STATUS"
+          echo "📋 Summary: $SUMMARY"
 
+      - name: Enforce Decision
+        env:
+           STATUS: ${{ fromJson(steps.ai.outputs.response).status }}
+        run: |
           if [ "$STATUS" != "APPROVE" ]; then
-            echo "❌ AI blocked Terraform"
-            exit 1
+             echo "❌ AI blocked Terraform"
+             exit 1
           fi
+           echo "✅ Terraform approved"
 
-          echo "✅ Terraform approved"
