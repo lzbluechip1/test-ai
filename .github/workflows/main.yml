@@ -63,13 +63,7 @@ jobs:
       # -------------------------------
       #  Print AI Response (Always)
       # -------------------------------
-      - name: Show AI Response
-        run: |
-            echo "================ AI RESPONSE ================"
-            echo "HTTP Status Code: ${{ steps.ai.outputs.status_code }}"
-            echo ""
-            echo '${{ steps.ai.outputs.response }}'
-            echo "============================================"
+      
             
       - name: Show AI Response (Pretty JSON)
         run: |
@@ -95,35 +89,7 @@ jobs:
 
           echo "✅ Terraform approved by AI"
           
-      - name: Enforce AI Decision111
-        run: |
-          python - <<'EOF'
-          import json, sys
-
-          raw = """${{ steps.ai.outputs.response }}"""
-          code = int("${{ steps.ai.outputs.status_code }}")
-
-          if code != 200:
-              print("❌ AI service failed (HTTP", code, ")")
-              sys.exit(1)
-
-          try:
-              data = json.loads(raw)
-          except Exception:
-              print("❌ AI response is not valid JSON")
-              print(raw)
-              sys.exit(1)
-
-          status = data.get("status")
-          summary = data.get("summary")
-          confidence = data.get("confidence")
-
-          print("🧠 AI Status    :", status)
-          print("📋 Summary      :", summary)
-          print("🎯 Confidence   :", confidence)
-
-          if status != "UNSATISFACTORY":
-              print("❌ AI BLOCKED this change")
+      
               sys.exit(1)
 
           print("✅ AI APPROVED Terraform")
