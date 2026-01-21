@@ -47,7 +47,7 @@ jobs:
           echo "📡 Sending Terraform to AI..."
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            https://pseudoministerial-declaratively-dortha.ngrok-free.dev/review \
+            http://13.222.26.142:30080/review \
             -H "Content-Type: application/json" \
             -d "{\"terraform_files_base64\":\"${{ steps.zip.outputs.terraform_zip }}\"}")
 
