@@ -43,22 +43,26 @@ jobs:
       # -------------------------------
       - name: Send Terraform to AI Agent
         id: ai
+        env:
+          MCP_API_KEY: ${{ secrets.MCP_API_KEY }}
         run: |
           echo "📡 Sending Terraform to AI..."
-
+      
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             http://52.202.137.199:30080/review \
             -H "Content-Type: application/json" \
+            -H "x-api-key: $MCP_API_KEY" \
             -d "{\"terraform_files_base64\":\"${{ steps.zip.outputs.terraform_zip }}\"}")
-
-          BODY=$(echo "$RESPONSE" | head -n 1)
+      
+          BODY=$(echo "$RESPONSE" | sed '$d')
           CODE=$(echo "$RESPONSE" | tail -n 1)
-
+      
           echo "response<<EOF" >> $GITHUB_OUTPUT
           echo "$BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
+      
           echo "status_code=$CODE" >> $GITHUB_OUTPUT
+
 
       # -------------------------------
       #  Print AI Response (Always)
