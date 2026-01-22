@@ -1,4 +1,4 @@
-name: AI Terraform Review 
+name: AI Terraform Review
 
 on:
   pull_request:
