@@ -49,7 +49,7 @@ jobs:
           echo "📡 Sending Terraform to AI..."
       
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            http://52.202.137.199:30080/review \
+            http://3.238.9.194:30080/review \
             -H "Content-Type: application/json" \
             -H "x-api-key: $MCP_API_KEY" \
             -d "{\"terraform_files_base64\":\"${{ steps.zip.outputs.terraform_zip }}\"}")
