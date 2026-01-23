@@ -21,6 +21,6 @@ resource "local_file" "example" {
   content  = "Hello from Terraform MCP"
 
   #  File permissions
-  #file_permission      = "0644"
-  # directory_permission = "0755"
+  file_permission      = "0644"
+  directory_permission = "0755"
 }
